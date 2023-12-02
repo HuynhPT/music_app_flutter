@@ -9,9 +9,10 @@ void main() {
   runApp(ModularApp(
       module: ModularRouter(),
       child: MultiProvider(
-        providers: [ChangeNotifierProvider(create: (_) => DashBoardViewModel())],
-        child: const MyApp(),
-      )));
+          providers: [ChangeNotifierProvider(create: (_) => DashBoardViewModel())],
+          builder: (context, child) {
+            return const MyApp();
+          })));
 }
 
 // router name

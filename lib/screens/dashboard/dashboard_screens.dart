@@ -1,8 +1,10 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 import 'package:http/http.dart' as http;
 import 'package:music_app/screens/dashboard/dashboard_viewmodel.dart';
+import 'package:music_app/screens/info_music/info_music.dart';
 import 'dart:convert' as convert;
 
 import 'package:provider/provider.dart';
@@ -23,6 +25,7 @@ class _DashboardScreensState extends State<DashboardScreens> with TickerProvider
     init();
   }
 
+  // call api thành công nhưng bị Zingmp3 chặn
   Future init() async {
     try {
       var uri = Uri.https('zingmp3.vn', '/api/v2/page/get/home', {
@@ -48,6 +51,26 @@ class _DashboardScreensState extends State<DashboardScreens> with TickerProvider
   @override
   void dispose() {
     super.dispose();
+  }
+
+  void ShowAler() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return const AlertDialog(
+            title: Text('Đây chỉ làm template thôi nha bạn'),
+          );
+        });
+  }
+
+  void PlayMusic(String title, String artist, String thumbnail, item) {
+    Modular.to.push(MaterialPageRoute(
+        builder: (context) => InfoMusicScreens(
+              title: title,
+              artist: artist,
+              thumbnail: thumbnail,
+              item: item,
+            )));
   }
 
   @override
@@ -133,50 +156,57 @@ class _DashboardScreensState extends State<DashboardScreens> with TickerProvider
                           ),
                           itemBuilder: (context, index) {
                             var item = dataQuickPlay[index];
-                            return Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                      image: DecorationImage(
-                                        image: NetworkImage('${item['thumbnail']}'),
-                                        fit: BoxFit.contain,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.white,
-                                          offset: Offset.fromDirection(-0.5),
-                                          blurRadius: 5,
-                                          spreadRadius: 0,
+                            return GestureDetector(
+                              onTap: () {
+                                PlayMusic(item['title'], item['artistsNames'], item['thumbnail'], item);
+                                vm.isPlay = true;
+                                vm.notifyListeners();
+                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                        image: DecorationImage(
+                                          image: NetworkImage('${item['thumbnail']}'),
+                                          fit: BoxFit.contain,
                                         ),
-                                      ]),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item['title'],
-                                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      Text(
-                                        item['artistsNames'],
-                                        style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w400),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      )
-                                    ],
+                                        borderRadius: BorderRadius.circular(8),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.white,
+                                            offset: Offset.fromDirection(-0.5),
+                                            blurRadius: 5,
+                                            spreadRadius: 0,
+                                          ),
+                                        ]),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item['title'],
+                                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Text(
+                                          item['artistsNames'],
+                                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w400),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             );
                           },
                         ),
@@ -194,38 +224,39 @@ class _DashboardScreensState extends State<DashboardScreens> with TickerProvider
                           itemCount: justHits.length,
                           scrollDirection: Axis.horizontal,
                           addAutomaticKeepAlives: false,
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisExtent: 190,
-                          ),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisExtent: 190, crossAxisSpacing: 20),
                           itemBuilder: (context, index) {
                             var item = justHits[index];
                             return Column(
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.max,
                               children: [
-                                Container(
-                                  width: 158,
-                                  height: 158,
-                                  decoration: ShapeDecoration(
-                                    image: DecorationImage(
-                                      image: NetworkImage(item['banner'] != null ? item['banner'].toString() : item['thumbnailM'].toString()),
-                                      fit: BoxFit.fill,
+                                //ẢNh
+                                Expanded(
+                                  child: Container(
+                                    width: 158,
+                                    height: 158,
+                                    decoration: ShapeDecoration(
+                                      image: DecorationImage(
+                                        image: NetworkImage(item['banner'] != null ? item['banner'].toString() : item['thumbnailM'].toString()),
+                                        fit: BoxFit.fill,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      shadows: const [
+                                        BoxShadow(
+                                          color: Color(0x7F000000),
+                                          blurRadius: 24,
+                                          offset: Offset(0, 8),
+                                          spreadRadius: 0,
+                                        )
+                                      ],
                                     ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    shadows: const [
-                                      BoxShadow(
-                                        color: Color(0x7F000000),
-                                        blurRadius: 24,
-                                        offset: Offset(0, 8),
-                                        spreadRadius: 0,
-                                      )
-                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 22),
+                                const SizedBox(height: 4),
                                 Text(
                                   // Kiểm tra những item không có title
                                   item['title'] != '' ? item['title'] ?? 'Nhạc Hits' : 'Nhạc Hits',
@@ -233,11 +264,9 @@ class _DashboardScreensState extends State<DashboardScreens> with TickerProvider
                                     color: Colors.white,
                                     fontSize: 16,
                                     fontFamily: 'Circular Std',
-                                    fontWeight: FontWeight.w700,
-                                    height: 0.09,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
                                 Text(
                                   item['sectionType'],
                                   style: const TextStyle(
@@ -257,107 +286,145 @@ class _DashboardScreensState extends State<DashboardScreens> with TickerProvider
                 )
               ],
             ),
+
+            // chơi nhạc
             vm.playMusic
                 ? Positioned(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      width: MediaQuery.of(context).size.width - 50,
-                      height: 83,
-                      decoration: ShapeDecoration(
-                        color: const Color(0xFF151515),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(17),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    bottom: 8,
+                    child: GestureDetector(
+                      onTap: () {
+                        PlayMusic(vm.title, vm.artist, vm.thumbnail, vm.item);
+                        vm.playMusic = false;
+                        vm.notifyListeners();
+                      },
+                      child: Stack(
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 48,
-                                height: 48,
-                                decoration: ShapeDecoration(
-                                  image: const DecorationImage(
-                                    image: NetworkImage("https://via.placeholder.com/48x48"),
-                                    fit: BoxFit.fill,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(43),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            width: MediaQuery.of(context).size.width - 50,
+                            height: 83,
+                            decoration: BoxDecoration(
+                                color: const Color(0xFF151515),
+                                borderRadius: BorderRadius.circular(17),
+                                boxShadow: [BoxShadow(color: Colors.white, offset: Offset.fromDirection(1), spreadRadius: 1, blurRadius: 10)]),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 48,
+                                        height: 48,
+                                        decoration: ShapeDecoration(
+                                          image: DecorationImage(
+                                            image: NetworkImage(vm.thumbnail),
+                                            fit: BoxFit.fill,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(43),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              vm.title,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 16,
+                                                fontFamily: 'Inter',
+                                                fontWeight: FontWeight.w500,
+                                                height: 0,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Text(
+                                              vm.artist,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                                fontFamily: 'Inter',
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            )
+                                          ],
+                                        ),
+                                      )
+                                    ],
                                   ),
                                 ),
-                              ),
-                              Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  Text(
-                                    'Lalkara ',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.w500,
-                                      height: 0,
-                                    ),
-                                  ),
-                                  Opacity(
-                                    opacity: 0.60,
-                                    child: Text(
-                                      'Diljit Dosanjh',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontFamily: 'Inter',
-                                        fontWeight: FontWeight.w300,
-                                        height: 0,
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Container(
-                                  width: 32,
-                                  height: 32,
-                                  clipBehavior: Clip.antiAlias,
-                                  decoration: const BoxDecoration(),
-                                  child: const Icon(
-                                    Icons.skip_previous,
-                                    color: Colors.white,
-                                  )),
-                              Container(
-                                width: 34,
-                                height: 34,
-                                child: Stack(
-                                  alignment: Alignment.center,
+                                Row(
                                   children: [
                                     Container(
+                                        width: 32,
+                                        height: 32,
+                                        clipBehavior: Clip.antiAlias,
+                                        decoration: const BoxDecoration(),
+                                        child: const Icon(
+                                          Icons.skip_previous,
+                                          color: Colors.white,
+                                        )),
+                                    SizedBox(
                                       width: 34,
                                       height: 34,
-                                      decoration: ShapeDecoration(
-                                        color: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(34.62),
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          vm.isPlay = !vm.isPlay;
+                                          vm.notifyListeners();
+                                        },
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            Container(
+                                              width: 34,
+                                              height: 34,
+                                              decoration: ShapeDecoration(
+                                                color: Colors.white,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(34.62),
+                                                ),
+                                              ),
+                                            ),
+                                            Icon(!vm.isPlay ? Icons.play_arrow : Icons.pause)
+                                          ],
                                         ),
                                       ),
                                     ),
-                                    const Icon(Icons.play_arrow)
+                                    Container(
+                                        width: 32,
+                                        height: 32,
+                                        clipBehavior: Clip.antiAlias,
+                                        decoration: const BoxDecoration(),
+                                        child: const Icon(
+                                          Icons.skip_next,
+                                          color: Colors.white,
+                                        )),
                                   ],
                                 ),
+                              ],
+                            ),
+                          ),
+                          Positioned(
+                            right: 5,
+                            top: 4,
+                            child: GestureDetector(
+                              onTap: () {
+                                vm.playMusic = false;
+                                vm.notifyListeners();
+                              },
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
                               ),
-                              Container(
-                                  width: 32,
-                                  height: 32,
-                                  clipBehavior: Clip.antiAlias,
-                                  decoration: const BoxDecoration(),
-                                  child: const Icon(
-                                    Icons.skip_next,
-                                    color: Colors.white,
-                                  )),
-                            ],
+                            ),
                           )
                         ],
                       ),
@@ -369,14 +436,4 @@ class _DashboardScreensState extends State<DashboardScreens> with TickerProvider
       );
     });
   }
-}
-
-enum MusicType {
-  Romance,
-  FeelGood,
-  Podcasts,
-  Party,
-  EDM;
-
-  const MusicType();
 }
